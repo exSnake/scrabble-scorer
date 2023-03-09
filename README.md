@@ -1,6 +1,19 @@
-# scrabble-scorer
+# A Scrabble Scorer Helper
 
-This template should help get you started developing with Vue 3 in Vite.
+Scrabble scorer helper made in VUE, frontend only with timer, players and bonus settings.
+Each letter point can be configured and is already implemented with standard languages configuration such as:
+
+- italiano
+- english
+- nederlands
+- french
+- espanol
+- deutsch
+- eesti
+- portugues
+- sahibba 
+- word with friends edition.
+ 
 
 ## Recommended IDE Setup
 
