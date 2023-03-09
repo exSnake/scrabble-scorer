@@ -9,17 +9,30 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "@chenfengyuan/vue-countdown": "^2.1.0",
+    "@popperjs/core": "^2.11.6",
+    "@variantjs/core": "^0.0.90",
+    "@variantjs/vue": "^0.0.22",
+    "@vueuse/core": "^9.9.0",
+    "body-scroll-lock": "^4.0.0-beta.0",
+    "flowbite": "^1.5.5",
+    "oh-vue-icons": "^1.0.0-rc3",
     "pinia": "^2.0.28",
     "vue": "^3.2.45",
-    "vue-router": "^4.1.6"
+    "vue-router": "^4.1.6",
+    "vue-timer-hook": "^1.0.37"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.1.4",
+    "@tailwindcss/forms": "^0.5.3",
     "@vitejs/plugin-vue": "^4.0.0",
     "@vue/eslint-config-prettier": "^7.0.0",
+    "autoprefixer": "^10.4.13",
     "eslint": "^8.22.0",
     "eslint-plugin-vue": "^9.3.0",
+    "postcss": "^8.4.20",
     "prettier": "^2.7.1",
+    "tailwindcss": "^3.2.4",
     "vite": "^4.0.0"
   }
 }

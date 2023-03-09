@@ -1,0 +1,37 @@
+{
+  "seconds": 120,
+  "players": [
+    {
+      "id": 1,
+      "name": "Daniele",
+      "active":false,
+      "words": [
+        { "id": 1, "text": "Ciao", "points": 10 }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Marika",
+      "active": false,
+      "words": [
+        { "id": 1, "text": "Ciao", "points": 10 }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Francesca",
+      "active": false,
+      "words": [
+        { "id": 1, "text": "Ciao", "points": 13 }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Marika",
+      "active": false,
+      "words": [
+        { "id": 1, "text": "Ciao", "points": 10 }
+      ]
+    }
+  ]
+}
