@@ -2,6 +2,8 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 import { variantJS } from "@variantjs/vue";
 import VueCountdown from "@chenfengyuan/vue-countdown";
+import Vue3Toasity from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
 import { OhVueIcon, addIcons } from "oh-vue-icons";
 import {
   MdPauseRound,
@@ -24,6 +26,7 @@ const configuration = {
 app.component(VueCountdown.name, VueCountdown);
 app.component("v-icon", OhVueIcon);
 app.use(variantJS, configuration);
+app.use(Vue3Toasity, { autoClose: 3000 });
 app.use(createPinia());
 app.use(router);
 

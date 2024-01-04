@@ -9,7 +9,7 @@ import SupportIcon from "./icons/IconSupport.vue";
 
 <template>
   <div
-    class="text-6xl text-center bg-white dark:bg-gray-700 m-4 rounded-lg uppercase"
+    class="text-base lg:text-6xl p-4 text-center bg-white dark:bg-gray-700 m-4 rounded-lg uppercase"
   >
     Scrabble Scorer Calculator
   </div>

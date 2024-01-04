@@ -91,6 +91,7 @@ onMounted(() => {
           :value="word.text"
           v-model="word.text"
           :disabled="!enabled"
+          @keyup.enter="add"
         />
         <div
           class="flex w-3 cursor-pointer flex-col rounded-r-lg text-center text-white text-2xs select-none"

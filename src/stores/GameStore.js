@@ -1,105 +1,162 @@
+import { ref, computed, onMounted } from "vue";
 import { defineStore } from "pinia";
 import { useTimer } from "vue-timer-hook";
 import { useStorage } from "@vueuse/core";
-export let useGameStore = defineStore("game", {
-  //data
-  state() {
-    return {
-      activePlayer: null,
-      language: useStorage("language", "it"),
-      settings: null,
-      timer: null,
-      seconds: useStorage("seconds", 90),
-      bonus: useStorage("bonus", 50),
-      players: useStorage("players", [], localStorage, { deep: true }),
-    };
-  },
+import { toast } from "vue3-toastify";
+export const useGameStore = defineStore("game", () => {
+  //#region State
 
-  //methods
-  actions: {
-    async fill() {
-      this.settings = await import("@/settings.json");
+  const activePlayer = ref(null);
+  const bonus = ref(useStorage("bonus", 50));
+  const language = ref(useStorage("language", "it"));
+  const players = ref(useStorage("players", [], localStorage, { deep: true }));
+  const seconds = ref(useStorage("seconds", 90));
+  const settings = ref(null);
+  const timer = ref(null);
 
-      this.$state = useStorage("state", null);
-      const time = new Date();
-      time.setSeconds(time.getSeconds() + this.seconds); // 10 minutes timer
-      this.timer = useTimer(time);
-      this.timer.pause();
-    },
+  //#endregion State
 
-    restartTimer() {
-      const time = new Date();
-      time.setSeconds(time.getSeconds() + this.seconds);
-      this.timer.restart(time);
-    },
+  //#region Computed properties
 
-    pauseTimer() {
-      if (this.timer.isRunning) {
-        this.timer.pause();
-      } else {
-        this.timer.resume();
+  const canAddPlayer = computed(() => {
+    return players.value.length < 4;
+  });
+
+  //#endregion Computed properties
+
+  //#region Actions
+
+  onMounted(() => {
+    players.value.forEach((player) => {
+      if (player.active) {
+        activePlayer.value = player;
       }
-    },
+    });
+  });
 
-    isRunning() {
-      return this.timer.isRunning;
-    },
+  function activatePlayer(player) {
+    players.value.forEach((p) => {
+      p.active = p === player;
+    });
+    activePlayer.value = player;
+  }
 
-    getCharacterPoints(char) {
-      return this.settings.letters[this.language][char] ?? 0;
-    },
+  function addPlayer(name) {
+    // if it's empty, don't add it and show toast message
+    if (!name) {
+      toast.error("Insert a name");
+      return;
+    }
 
-    addWord(word) {
-      this.players[this.activePlayer.id - 1].words.push({
-        id: this.activePlayer.words.length + 1,
-        text: word.text,
-        points: parseInt(word.points),
-      });
-      this.nextPlayer();
-      this.restartTimer();
-    },
+    players.value.push({
+      id: players.value.length + 1,
+      name: name,
+      active: false,
+      words: [],
+    });
+    // if it was the first player, activate it
+    if (players.value.length === 1) {
+      activatePlayer(players.value[0]);
+    }
+  }
 
-    deleteWord(wordId, player) {
-      console.log(player.words);
-    },
+  function addWord(word) {
+    // if it's empty, don't add it and show toast message
+    if (!word.text) {
+      toast.error("Insert a non empty word");
+      return;
+    }
 
-    nextPlayer() {
-      if (
-        this.activePlayer == null ||
-        this.activePlayer.id === this.players.length
-      ) {
-        this.activatePlayer(this.players[0]);
-      } else {
-        this.activatePlayer(this.players[this.activePlayer.id]);
+    players.value[activePlayer.value.id - 1].words.push({
+      id: activePlayer.value.words.length + 1,
+      text: word.text,
+      points: parseInt(word.points),
+    });
+    nextPlayer();
+    restartTimer();
+  }
+
+  function deletePlayer(player) {
+    const index = players.value.indexOf(player);
+    if (index > -1) {
+      if (players.value.length === 1 || player.id === activePlayer.value.id) {
+        activePlayer.value = null;
+        timer.value.pause();
       }
-    },
+      players.value.splice(index, 1);
+    }
+  }
 
-    activatePlayer(player) {
-      this.players.map((p) => (p.active = p === player));
-      this.activePlayer = player;
-    },
+  function deleteWord({ wordId, player }) {
+    const index = player.words.findIndex((word) => word.id === wordId);
+    if (index > -1) {
+      player.words.splice(index, 1);
+    }
+  }
 
-    deletePlayer(player) {
-      const index = this.players.indexOf(player);
-      if (index > -1) {
-        // only splice array when item is found
-        this.players.splice(index, 1); // 2nd parameter means remove one item only
-      }
-    },
+  async function fill() {
+    settings.value = await import("@/settings.json");
 
-    addPlayer(name) {
-      this.players.push({
-        id: this.players.length + 1,
-        name: name,
-        words: [],
-        active: false,
-      });
-    },
+    const time = new Date();
+    time.setSeconds(time.getSeconds() + seconds.value);
+    timer.value = useTimer(time);
+    timer.value.pause();
+  }
+  function getCharacterPoints(char) {
+    return settings.value.letters[language.value][char] ?? 0;
+  }
 
-    canAddPlayer() {
-      return this.players.length < 4;
-    },
-  },
-  //computed
-  getters: {},
+  function isRunning() {
+    return timer.value.isRunning;
+  }
+
+  function nextPlayer() {
+    if (!activePlayer.value || activePlayer.value.id === players.value.length) {
+      activatePlayer(players.value[0]);
+    } else {
+      const nextPlayerId = activePlayer.value.id % players.value.length;
+      activatePlayer(players.value[nextPlayerId]);
+    }
+  }
+
+  function pauseTimer() {
+    if (timer.value.isRunning) {
+      timer.value.pause();
+    } else {
+      timer.value.resume();
+    }
+  }
+  function restartTimer() {
+    const time = new Date();
+    time.setSeconds(time.getSeconds() + seconds.value);
+    timer.value.restart(time);
+    pauseTimer();
+  }
+
+  //#endregion Actions
+
+  return {
+    // State
+    activePlayer,
+    bonus,
+    canAddPlayer,
+    language,
+    players,
+    seconds,
+    settings,
+    timer,
+
+    // Actions
+    activatePlayer,
+    addPlayer,
+    addWord,
+    deletePlayer,
+    deleteWord,
+    fill,
+    getCharacterPoints,
+    isRunning,
+    nextPlayer,
+    pauseTimer,
+    restartTimer,
+  };
 });
