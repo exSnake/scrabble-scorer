@@ -1,20 +1,22 @@
 <script setup>
 import { TButton, TInput } from "@variantjs/vue";
-import { computed, toRefs } from "vue";
+import { computed, toRefs, ref } from "vue";
 
+const showWords = ref(true);
 const props = defineProps({
   player: Object,
 });
 
 const emit = defineEmits(["delete", "activate", "deleteWord"]);
-const activate = () => {
-  emit("activate");
-};
 
 const { player } = toRefs(props);
 
 const handleDeleteWord = (id) => {
   emit("deleteWord", { id: id, player: player.value });
+};
+
+const handleDeleteSelf = () => {
+  emit("delete", player.value);
 };
 
 const points = computed(() => {
@@ -23,47 +25,91 @@ const points = computed(() => {
     0
   );
 });
+
+const handlePlayerClick = () => {
+  // if already active, toggle words, else emit activate event
+  if (player.value.active) {
+    showWords.value = !showWords.value;
+  } else {
+    emit("activate", player.value);
+  }
+};
 </script>
 
 <template>
   <div
     :class="{
-      'grid grid-cols-3 bg-gray-200 dark:bg-gray-600 p-2 rounded-lg': true,
-      'border-green-300 dark:border-green-500 border-2': player.active,
+      'dark:bg-gray-600 bg-gray-200 rounded-lg': true,
+      'ring ring-emerald-300': player.active,
     }"
-    @click="activate"
+    @click="handlePlayerClick"
   >
+    <!-- Header -->
     <div
-      class="flex col-span-3 justify-between rounded-lg px-2 py-2 font-semibold"
+      :class="{
+        'flex justify-between items-center px-4 py-2 overflow-hidden bg-gray-400 text-white font-bold text-lg': true,
+        'rounded-t-lg': player.words.length > 0,
+        'rounded-lg': player.words.length === 0 || !showWords,
+      }"
     >
-      <div class="uppercase">{{ player.name }}</div>
-      <div class="flex gap-4" @click="emit('delete')">
+      <div>{{ player.name }}</div>
+      <div class="flex items-center gap-4">
         <div>Points: {{ points }}</div>
         <div
-          class="cursor-pointer bg-red-400 text-white dark:bg-red-900 px-2 rounded-lg"
+          @click="handleDeleteSelf"
+          class="text-white bg-red-800 px-2 py-1 rounded-lg font-bold"
         >
           X
         </div>
       </div>
     </div>
-    <div
-      class="col-span-3 grid grid-cols-3 mt-1 rounded-lg bg-gray-100 dark:bg-gray-700"
-      v-for="word in player.words"
-      :key="word.id"
-    >
-      <div class="self-center ml-2 uppercase">{{ word.text }}</div>
-      <div class="py-2">
-        <TInput class="text-right text-gray-800 h-10" v-model="word.points" />
-      </div>
-      <div class="mx-auto self-center py-2">
-        <TButton
-          class="rounded-lg bg-gray-300 px-4 py-2 dark:bg-gray-500"
-          @click="handleDeleteWord(word.id, player)"
-          >x</TButton
+    <!-- Words Rows -->
+    <Transition>
+      <div class="text-sm" v-if="showWords">
+        <div
+          v-for="(word, index) in player.words"
+          :key="word.id"
+          class="flex justify-between items-center space-y-2"
         >
+          <div
+            :class="{
+              'flex justify-between w-full py-2 items-center px-4': true,
+              'border-b border-white dark:border-gray-400':
+                player.words.length - 1 !== index,
+            }"
+          >
+            <div>
+              <div class="uppercase">{{ word.text }}</div>
+            </div>
+            <div class="flex space-x-2">
+              <div class="flex items-center">
+                <input
+                  class="text-right p-1 rounded-lg w-12 dark:bg-gray-500 dark:text-white"
+                  v-model="word.points"
+                />
+              </div>
+              <div
+                @click="() => handleDeleteWord(word.id)"
+                class="text-white bg-red-800 px-2 py-1 rounded-lg font-bold"
+              >
+                X
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </Transition>
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.v-leave-active,
+.v-enter-active {
+  transition: opacity 0.2s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+}
+</style>

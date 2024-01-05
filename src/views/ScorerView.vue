@@ -36,28 +36,31 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="container mx-auto bg-white p-4 dark:bg-gray-700 h-screen">
-    <div class="flex flex-wrap lg:flex-nowrap gap-2">
+  <div
+    class="mx-auto bg-white p-4 dark:bg-gray-700 h-screen w-s overflow-x-hidden"
+  >
+    <!-- Timer -->
+    <TimerTool
+      class="flex flex-1 w-full flex-col items-center rounded-lg bg-gray-100 px-6 py-4 text-7xl text-gray-600 dark:bg-gray-600 dark:text-white"
+      :timer="timer"
+      @restart="restartTimer()"
+      @pause="pauseTimer()"
+    />
+    <div class="flex flex-wrap lg:flex-nowrap gap-2 items-start mt-2">
       <!-- Add Word -->
       <Transition>
         <div
-          class="order-last flex w-full flex-col rounded-lg bg-gray-200 p-3 dark:bg-gray-600 lg:order-first lg:w-1/3"
+          class="order-last flex w-full flex-col rounded-lg bg-gray-200 p-3 dark:bg-gray-600 lg:order-first lg:w-2/4"
           v-if="activePlayer"
         >
           <ScorerAddWord :enabled="activePlayer != null" @add="game.addWord" />
         </div>
       </Transition>
-      <!-- Timer -->
-      <TimerTool
-        class="flex w-full flex-col items-center rounded-lg bg-gray-100 px-6 py-4 text-7xl text-gray-600 dark:bg-gray-600 dark:text-white lg:w-1/3"
-        :timer="timer"
-        @restart="restartTimer()"
-        @pause="pauseTimer()"
-      />
+
       <!-- New Player -->
       <Transition>
         <div
-          class="flex w-full flex-col rounded-lg bg-gray-200 p-3 dark:bg-gray-600 lg:w-1/3"
+          class="flex w-full flex-col rounded-lg bg-gray-200 p-3 dark:bg-gray-600 lg:w-2/4"
           v-if="canAddPlayer"
         >
           <div class="flex gap-4">
@@ -95,15 +98,17 @@ onMounted(() => {
               Select a player to add a word
             </div>
           </div>
-          <PlayerDetails
-            v-for="player in game.players"
-            :key="player.id"
-            class="w-full sm:w-[300px] mt-2"
-            :player="player"
-            @deleteWord="handleDeleteWord"
-            @delete="deletePlayer(player)"
-            @activate="activatePlayer(player)"
-          />
+          <div class="flex flex-wrap items-start gap-4 justify-between">
+            <PlayerDetails
+              v-for="player in game.players"
+              :key="player.id"
+              class="w-full sm:w-[300px] mt-2"
+              :player="player"
+              @deleteWord="handleDeleteWord"
+              @delete="deletePlayer(player)"
+              @activate="activatePlayer(player)"
+            />
+          </div>
         </div>
       </Transition>
     </div>
