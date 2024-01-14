@@ -4,6 +4,6 @@ import TheWelcome from "../components/TheWelcome.vue";
 
 <template>
   <main>
-    <TheWelcome />
+    <TheWelcome class="container mx-auto" />
   </main>
 </template>

@@ -3,19 +3,18 @@ import PlayerDetails from "@/components/PlayerDetails.vue";
 import TimerTool from "@/components/icons/TimerTool.vue";
 import { useGameStore } from "@/stores/GameStore";
 import { TButton, TInput } from "@variantjs/vue";
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import ScorerAddWord from "@/components/ScorerAddWord.vue";
 import { storeToRefs } from "pinia";
-import { vOnClickOutside } from "@vueuse/components";
 
 const newPlayerName = ref("");
 const game = useGameStore();
 const {
   activatePlayer,
   addPlayer,
+  addWord,
   deletePlayer,
   deleteWord,
-  fill,
   pauseTimer,
   restartTimer,
 } = game;
@@ -30,14 +29,14 @@ const handleAddPlayer = () => {
   newPlayerName.value = "";
 };
 
-onMounted(() => {
-  fill();
-});
+const handleAddWord = (word) => {
+  addWord(word);
+};
 </script>
 
 <template>
   <div
-    class="mx-auto bg-white p-4 dark:bg-gray-700 h-screen w-s overflow-x-hidden"
+    class="container lg:px-32 mx-auto bg-white p-4 dark:bg-gray-700 h-screen w-s overflow-x-hidden"
   >
     <!-- Timer -->
     <TimerTool
@@ -50,10 +49,10 @@ onMounted(() => {
       <!-- Add Word -->
       <Transition>
         <div
-          class="order-last flex w-full flex-col rounded-lg bg-gray-200 p-3 dark:bg-gray-600 lg:order-first lg:w-2/4"
+          class="order-last flex w-full flex-col rounded-lg bg-gray-200 p-3 dark:bg-gray-600 lg:order-first"
           v-if="activePlayer"
         >
-          <ScorerAddWord :enabled="activePlayer != null" @add="game.addWord" />
+          <ScorerAddWord :enabled="activePlayer != null" @add="handleAddWord" />
         </div>
       </Transition>
 
@@ -93,7 +92,7 @@ onMounted(() => {
         <div v-if="players.length != 0">
           <!-- Players title with small hint to click in player to activate -->
           <div class="mt-4">
-            <div class="text-2xl">Players</div>
+            <div class="text-2xl mb-2">Players</div>
             <div class="text-sm text-gray-500" v-if="activePlayer === null">
               Select a player to add a word
             </div>
@@ -102,7 +101,7 @@ onMounted(() => {
             <PlayerDetails
               v-for="player in game.players"
               :key="player.id"
-              class="w-full sm:w-[300px] mt-2"
+              class="w-full md:w-[300px]"
               :player="player"
               @deleteWord="handleDeleteWord"
               @delete="deletePlayer(player)"

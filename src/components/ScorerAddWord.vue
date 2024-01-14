@@ -2,13 +2,16 @@
 import { useGameStore } from "@/stores/GameStore";
 
 import { TButton, TInput } from "@variantjs/vue";
+import { storeToRefs } from "pinia";
 import { ref, defineProps, defineEmits, watchEffect, onMounted } from "vue";
 
-let game = useGameStore();
+const game = useGameStore();
+const { bonus, maxWordLength } = storeToRefs(game);
+const { getCharacterPoints } = game;
 
 const word = ref({ text: "", points: 0 });
 const errors = ref(new Set());
-const bonusArray = ref([]);
+const bonusArray = ref(Array(maxWordLength.value).fill(1));
 const superBonus = ref(false);
 const wordBonus = ref(1);
 const emit = defineEmits(["add"]);
@@ -24,7 +27,7 @@ const add = () => {
 
 const init = () => {
   word.value = { text: "", points: 0 };
-  bonusArray.value = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+  bonusArray.value = Array(maxWordLength.value).fill(1);
   superBonus.value = false;
   wordBonus.value = 1;
 };
@@ -62,10 +65,10 @@ watchEffect(() => {
   for (const [i, char] of [...word.value.text].entries()) {
     points +=
       parseInt(bonusArray.value[i]) *
-      parseInt(game.getCharacterPoints(char.toUpperCase()));
+      parseInt(getCharacterPoints(char.toUpperCase()));
   }
   points = points * wordBonus.value;
-  points += superBonus.value ? game.bonus : 0;
+  points += superBonus.value ? bonus.value : 0;
   word.value.points = points;
 });
 
@@ -76,6 +79,7 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col">
+    <h2 class="text-sm font-bold uppercase">Parola:</h2>
     <div class="flex gap-2">
       <div class="flex w-full">
         <TInput
@@ -86,7 +90,7 @@ onMounted(() => {
             'bg-red-700 border-red-700 !text-white': wordBonus === 3,
             '!border-green-400 border-4': superBonus,
           }"
-          maxlength="15"
+          :maxlength="maxWordLength"
           placeholder="word..."
           :value="word.text"
           v-model="word.text"
@@ -116,7 +120,7 @@ onMounted(() => {
         +
       </TButton>
     </div>
-    <div class="mt-2 flex flex-wrap gap-1 rounded-lg px-2 py-4">
+    <div v-if="word.text !== ''" class="mt-2 flex flex-wrap gap-1 rounded-lg">
       <div
         class="grid h-14 w-10 grid-cols-3 select-none"
         :key="index"
@@ -134,7 +138,7 @@ onMounted(() => {
         >
           <div class="text-3xl">{{ char }}</div>
           <div class="self-end text-2xs" v-if="!isBonusEquals(index, 0)">
-            {{ game.getCharacterPoints(char) }}
+            {{ getCharacterPoints(char) }}
           </div>
         </div>
         <div

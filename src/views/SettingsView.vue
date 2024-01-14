@@ -1,9 +1,36 @@
 <script setup>
 import { TInput, TSelect } from "@variantjs/vue";
 import { useGameStore } from "@/stores/GameStore";
+import { storeToRefs } from "pinia";
+import { computed } from "vue";
 
-let game = useGameStore();
-game.fill();
+const game = useGameStore();
+const { bonus, language, maxWordLength, settings, seconds } = storeToRefs(game);
+
+const bonusComputed = computed({
+  get: () => bonus.value,
+  set: (value) => setNumberValue(bonus, value),
+});
+
+const secondsComputed = computed({
+  get: () => seconds.value,
+  set: (value) => setNumberValue(seconds, value),
+});
+
+const maxWordLengthComputed = computed({
+  get: () => maxWordLength.value,
+  set: (value) => setNumberValue(maxWordLength, value),
+});
+
+const setNumberValue = (ref, value) => {
+  ref.value = isNaN(parseInt(value)) ? 0 : value;
+};
+
+const handleNumberInputKeyPress = (event) => {
+  if (event.key && !/\d/.test(event.key)) {
+    event.preventDefault();
+  }
+};
 </script>
 <template>
   <div
@@ -17,22 +44,40 @@ game.fill();
           <div class="uppercase">Timer</div>
           <div class="text-xs">(seconds)</div>
         </div>
-        <TInput class="h-12 max-w-sm" v-model.number="game.seconds" />
+        <TInput
+          class="h-12 max-w-sm"
+          v-model.number="secondsComputed"
+          @keypress="handleNumberInputKeyPress"
+        />
         <div class="flex flex-col">
           <div class="uppercase">Language</div>
           <div class="text-xs">(points)</div>
         </div>
         <TSelect
-          v-if="game.settings"
+          v-if="settings"
           class="h-12 max-w-sm"
-          v-model="game.language"
-          :options="game.settings.languages"
+          v-model="language"
+          :options="settings.languages"
         />
         <div class="flex flex-col">
           <div class="uppercase">Bonus</div>
           <div class="text-xs">(points)</div>
         </div>
-        <TInput class="h-12 max-w-sm" v-model.number="game.bonus" />
+        <input
+          type="text"
+          class="h-12 max-w-sm text-gray-900 rounded"
+          v-model="bonusComputed"
+          @keypress="handleNumberInputKeyPress"
+        />
+        <div class="flex flex-col">
+          <div class="uppercase">Max Word Length</div>
+          <div class="text-xs">(number)</div>
+        </div>
+        <TInput
+          class="h-12 max-w-sm"
+          v-model.number="maxWordLengthComputed"
+          @keypress="handleNumberInputKeyPress"
+        />
       </div>
     </div>
   </div>

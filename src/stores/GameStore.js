@@ -6,13 +6,22 @@ import { toast } from "vue3-toastify";
 export const useGameStore = defineStore("game", () => {
   //#region State
 
-  const activePlayer = ref(null);
   const bonus = ref(useStorage("bonus", 50));
+  const maxWordLength = ref(useStorage("maxWordLength", 10));
   const language = ref(useStorage("language", "it"));
   const players = ref(useStorage("players", [], localStorage, { deep: true }));
   const seconds = ref(useStorage("seconds", 90));
   const settings = ref(null);
   const timer = ref(null);
+
+  onMounted(async () => {
+    settings.value = await import("@/settings.json");
+
+    const time = new Date();
+    time.setSeconds(time.getSeconds() + seconds.value);
+    timer.value = useTimer(time);
+    timer.value.pause();
+  });
 
   //#endregion State
 
@@ -22,23 +31,18 @@ export const useGameStore = defineStore("game", () => {
     return players.value.length < 4;
   });
 
+  const activePlayer = computed(() => {
+    return players.value.find((player) => player.active);
+  });
+
   //#endregion Computed properties
 
   //#region Actions
-
-  onMounted(() => {
-    players.value.forEach((player) => {
-      if (player.active) {
-        activePlayer.value = player;
-      }
-    });
-  });
 
   function activatePlayer(player) {
     players.value.forEach((p) => {
       p.active = p === player;
     });
-    activePlayer.value = player;
   }
 
   function addPlayer(name) {
@@ -48,8 +52,13 @@ export const useGameStore = defineStore("game", () => {
       return;
     }
 
+    // get id of the player to add, for each player get the max id and add 1
+    const id = players.value.reduce((max, player) => {
+      return player.id > max ? player.id : max;
+    }, 0);
+
     players.value.push({
-      id: players.value.length + 1,
+      id: id,
       name: name,
       active: false,
       words: [],
@@ -61,17 +70,17 @@ export const useGameStore = defineStore("game", () => {
   }
 
   function addWord(word) {
-    // if it's empty, don't add it and show toast message
     if (!word.text) {
       toast.error("Insert a non empty word");
       return;
     }
 
-    players.value[activePlayer.value.id - 1].words.push({
+    activePlayer.value.words.push({
       id: activePlayer.value.words.length + 1,
       text: word.text,
       points: parseInt(word.points),
     });
+
     nextPlayer();
     restartTimer();
   }
@@ -94,14 +103,6 @@ export const useGameStore = defineStore("game", () => {
     }
   }
 
-  async function fill() {
-    settings.value = await import("@/settings.json");
-
-    const time = new Date();
-    time.setSeconds(time.getSeconds() + seconds.value);
-    timer.value = useTimer(time);
-    timer.value.pause();
-  }
   function getCharacterPoints(char) {
     return settings.value.letters[language.value][char] ?? 0;
   }
@@ -111,12 +112,9 @@ export const useGameStore = defineStore("game", () => {
   }
 
   function nextPlayer() {
-    if (!activePlayer.value || activePlayer.value.id === players.value.length) {
-      activatePlayer(players.value[0]);
-    } else {
-      const nextPlayerId = activePlayer.value.id % players.value.length;
-      activatePlayer(players.value[nextPlayerId]);
-    }
+    const index = players.value.indexOf(activePlayer.value);
+    const nextIndex = index === players.value.length - 1 ? 0 : index + 1;
+    activatePlayer(players.value[nextIndex]);
   }
 
   function pauseTimer() {
@@ -141,6 +139,7 @@ export const useGameStore = defineStore("game", () => {
     bonus,
     canAddPlayer,
     language,
+    maxWordLength,
     players,
     seconds,
     settings,
@@ -152,7 +151,6 @@ export const useGameStore = defineStore("game", () => {
     addWord,
     deletePlayer,
     deleteWord,
-    fill,
     getCharacterPoints,
     isRunning,
     nextPlayer,

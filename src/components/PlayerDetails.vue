@@ -53,7 +53,7 @@ const handlePlayerClick = () => {
       }"
     >
       <div>{{ player.name }}</div>
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-4 cursor-pointer">
         <div>Points: {{ points }}</div>
         <div
           @click="handleDeleteSelf"
@@ -89,7 +89,7 @@ const handlePlayerClick = () => {
                 />
               </div>
               <div
-                @click="() => handleDeleteWord(word.id)"
+                @click.stop="() => handleDeleteWord(word.id)"
                 class="text-white bg-red-800 px-2 py-1 rounded-lg font-bold"
               >
                 X
